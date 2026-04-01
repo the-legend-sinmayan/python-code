@@ -10,4 +10,4 @@ if num <0:
 elif num == 0:
     print("The factorial of 0 is 1")
 else:
-    print("the factorial of", num, "is", recur_factorial(num))45
+    print("the factorial of", num, "is", recur_factorial(num))
