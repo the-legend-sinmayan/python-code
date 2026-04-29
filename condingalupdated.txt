@@ -1,0 +1,2 @@
+file in write mode.............HI! I am sinmayan.I am 13 years old.
+file in append mode.............HI! I am sinmayan.I am 13 years old.

@@ -1,0 +1,8 @@
+Game Description
+Fortnite is developed and published by Epic Games and was first released in 2017. It is a free-to-play game that includes several game modes, the most prominent being Battle Royale, which pits 100 players against each other on a shrinking map until only one player or team remains standing. The game is available on multiple platforms, including PC, PlayStation, Xbox, Nintendo Switch, iOS (with limitations), and Android.
+CORE GAME modes
+
+1.Battle Royale: Players drop from a flying bus onto an island and gather weapons, resources, and items while staying inside a safe zone that gradually shrinks. The game features solo, duo, and squad modes, as well as occasional large-scale limited-time events.
+2.Creative Mode: Allows players to build their own worlds, mini-games, and customized experiences using Fortnite’s building tools.
+
+3.Save the World: A cooperative Player vs Environment (PvE) mode where players fight AI-controlled monsters and complete missions. This mode is distinct from Battle Royale and requires a purchase.
