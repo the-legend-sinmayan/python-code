@@ -3,7 +3,7 @@ import math
 
 class Shape:
     def area(self):
-        raise NotImplementedError("Subclasses must implement this method")
+        raise NotImplementedError("Subclasses must use this method")
 
 
 class Rectangle(Shape):
