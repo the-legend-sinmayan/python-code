@@ -1,0 +1,10 @@
+student name        favsubject
+george              math
+sinmayan            science
+konate              I.C.T
+ethan               p.e
+imran               r.e
+joseph              math
+jane                math
+stefano             P.e
+david               English
