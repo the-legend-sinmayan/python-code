@@ -1,164 +1,150 @@
 import pygame
 import random
-import sys
+import math
+import random
 
 pygame.init()
 
-WIDTH, HEIGHT = 600, 600
+WIDTH, HEIGHT = 1000, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Neon Game Hub")
-
-font = pygame.font.SysFont("Arial", 30)
+pygame.display.set_caption("Battle Royale Mini")
 clock = pygame.time.Clock()
+font = pygame.font.SysFont("Arial", 28)
 
-BG = (15, 23, 42)
-WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
+SKY = (90, 160, 255)
+GROUND = (70, 170, 80)
+WHITE = (255,255,255)
+BROWN = (139,69,19)
+RED = (220,70,70)
+BLUE = (50,100,255)
 
-state = "menu"
+player = pygame.Rect(100, 450, 40, 60)
+velocity_y = 0
+on_ground = False
+health = 100
+score = 0
+bullets = []
+platforms = [pygame.Rect(0, 510, WIDTH, 90)]
+builds = []
+enemies = []
 
-# ================= TIC TAC TOE =================
-board = [""] * 9
-turn = "X"
+for _ in range(5):
+    enemies.append(pygame.Rect(random.randint(500, 950), 450, 40, 60))
 
-def check_win():
-    win = [
-        (0,1,2),(3,4,5),(6,7,8),
-        (0,3,6),(1,4,7),(2,5,8),
-        (0,4,8),(2,4,6)
-    ]
-    for a,b,c in win:
-        if board[a] == board[b] == board[c] != "":
-            return board[a]
-    return None
-
-def draw_tic():
-    screen.fill(BG)
-
-    for i in range(3):
-        for j in range(3):
-            pygame.draw.rect(screen, WHITE, (200 + j*100, 150 + i*100, 90, 90), 2)
-            idx = i*3 + j
-            text = font.render(board[idx], True, WHITE)
-            screen.blit(text, (235 + j*100, 180 + i*100))
-
-# ================= SNAKE =================
-snake = [(300, 300)]
-direction = (20, 0)
-food = (200, 200)
-
-def draw_snake():
-    screen.fill(BG)
-
-    for s in snake:
-        pygame.draw.rect(screen, GREEN, (*s, 20, 20))
-
-    pygame.draw.rect(screen, RED, (*food, 20, 20))
-
-def move_snake():
-    global food
-
-    head = snake[0]
-    new = (head[0] + direction[0], head[1] + direction[1])
-
-    if new[0] < 0 or new[1] < 0 or new[0] >= WIDTH or new[1] >= HEIGHT:
-        reset_snake()
-
-    snake.insert(0, new)
-
-    if new == food:
-        food = (random.randint(0, 29)*20, random.randint(0, 29)*20)
-    else:
-        snake.pop()
-
-def reset_snake():
-    global snake, direction
-    snake = [(300, 300)]
-    direction = (20, 0)
-
-# ================= MENU =================
-def draw_menu():
-    screen.fill(BG)
-    title = font.render("Neon Game Hub", True, WHITE)
-    t1 = font.render("Press 1: Tic Tac Toe", True, WHITE)
-    t2 = font.render("Press 2: Snake", True, WHITE)
-
-    screen.blit(title, (200, 120))
-    screen.blit(t1, (180, 250))
-    screen.blit(t2, (180, 300))
-
-snake_timer = 0
-
-# ================= LOOP =================
-while True:
-    clock.tick(10)
+running = True
+while running:
+    dt = clock.tick(60)
+    # dynamic sky with sun
+    for y in range(HEIGHT):
+   
+        c = (90, min(180 + y//8, 220), 255)
+        pygame.draw.line(screen, c, (0, y), (WIDTH, y))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+            running = False
 
-        # MENU
-        if state == "menu":
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:
-                    state = "tic"
-                if event.key == pygame.K_2:
-                    state = "snake"
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and on_ground:
+                velocity_y = -15
+            if event.key == pygame.K_q:
+                builds.append(pygame.Rect(player.centerx + 30, player.y + 20, 80, 20))
 
-        # TIC TAC TOE
-        elif state == "tic":
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mx, my = pygame.mouse.get_pos()
+            bullets.append([player.centerx, player.centery, mx, my])
 
-                if 200 <= x <= 500 and 150 <= y <= 450:
-                    col = (x - 200) // 100
-                    row = (y - 150) // 100
-                    idx = int(row * 3 + col)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_a]:
+        player.x -= 5
+    if keys[pygame.K_d]:
+        player.x += 5
 
-                    if 0 <= idx < 9 and board[idx] == "":
-                        board[idx] = turn
-                        turn = "O" if turn == "X" else "X"
+    velocity_y += 0.7
+    player.y += velocity_y
+    on_ground = False
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    board = [""] * 9
-                    turn = "X"
-                    state = "menu"
+    for p in platforms + builds:
+        if player.colliderect(p) and velocity_y >= 0:
+            player.bottom = p.top
+            velocity_y = 0
+            on_ground = True
 
-        # SNAKE
-        elif state == "snake":
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    direction = (0, -20)
-                if event.key == pygame.K_DOWN:
-                    direction = (0, 20)
-                if event.key == pygame.K_LEFT:
-                    direction = (-20, 0)
-                if event.key == pygame.K_RIGHT:
-                    direction = (20, 0)
-                if event.key == pygame.K_ESCAPE:
-                    state = "menu"
+    for bullet in bullets[:]:
+        x, y, tx, ty = bullet
+        dx = tx - x
+        dy = ty - y
+        dist = max((dx**2 + dy**2)**0.5, 1)
+        bullet[0] += dx / dist * 12
+        bullet[1] += dy / dist * 12
 
-    # DRAW STATES
-    if state == "menu":
-        draw_menu()
+        if bullet[0] < 0 or bullet[0] > WIDTH or bullet[1] < 0 or bullet[1] > HEIGHT:
+            bullets.remove(bullet)
+            continue
 
-    elif state == "tic":
-        draw_tic()
+        for enemy in enemies[:]:
+            if enemy.collidepoint(bullet[0], bullet[1]):
+                enemies.remove(enemy)
+                bullets.remove(bullet)
+                score += 1
+                break
 
-        winner = check_win()
-        if winner:
-            text = font.render(f"{winner} Wins!", True, GREEN)
-            screen.blit(text, (220, 500))
-            board[:] = [""] * 9
-            turn = "X"
+    for enemy in enemies:
+        if enemy.x < player.x:
+            enemy.x += 1
+        else:
+            enemy.x -= 1
 
-    elif state == "snake":
-        snake_timer += 1
-        if snake_timer % 5 == 0:
-            move_snake()
-        draw_snake()
+        if player.colliderect(enemy):
+            health -= 0.1
 
-    pygame.display.update()
+    pygame.draw.rect(screen, GROUND, (0, 510, WIDTH, 90))
+    for x in range(0, WIDTH, 40):
+        pygame.draw.circle(screen, (90,190,90), (x, 520), 12)
+
+    for b in builds:
+        pygame.draw.rect(screen, BROWN, b)
+
+    # player with more stylized look
+    pygame.draw.rect(screen, (35,55,170), player, border_radius=8)
+    pygame.draw.rect(screen, (255,220,180), (player.x+8, player.y+6, 24, 18), border_radius=6)
+    pygame.draw.rect(screen, (20,20,20), (player.x+12, player.y+2, 16, 10), border_radius=4)
+
+    for enemy in enemies:
+        pygame.draw.rect(screen, (200,60,70), enemy, border_radius=8)
+        pygame.draw.rect(screen, (255,220,180), (enemy.x+8, enemy.y+6, 24, 18), border_radius=6)
+
+    for bullet in bullets:
+        pygame.draw.circle(screen, WHITE, (int(bullet[0]), int(bullet[1])), 4)
+
+    screen.blit(font.render(f"Health: {int(health)}", True, WHITE), (20,20))
+    screen.blit(font.render(f"Elims: {score}", True, WHITE), (20,55))
+    screen.blit(font.render("A/D move  SPACE jump  Mouse shoot  Q build", True, WHITE), (20, 90))
+
+    # inventory bar
+    pygame.draw.rect(screen, (30,30,40), (WIDTH//2-220, HEIGHT-70, 440, 50), border_radius=12)
+    for i in range(5):
+        pygame.draw.rect(screen, (90,90,110), (WIDTH//2-205 + i*85, HEIGHT-60, 70, 30), border_radius=8)
+
+    # sun
+    pygame.draw.circle(screen, (255,240,120), (850, 90), 45)
+
+    # clouds
+    for cx, cy in [(160,80),(350,120),(620,90)]:
+        pygame.draw.circle(screen, (245,245,255), (cx, cy), 25)
+        pygame.draw.circle(screen, (245,245,255), (cx+30, cy), 30)
+        pygame.draw.circle(screen, (245,245,255), (cx+55, cy), 22)
+
+    # simple trees
+    for tx in [120, 280, 760, 910]:
+        pygame.draw.rect(screen, (120,80,40), (tx, 455, 14, 60))
+        pygame.draw.circle(screen, (40,150,60), (tx+7, 445), 28)
+
+    if health <= 0:
+        game_over = font.render("Game Over", True, WHITE)
+        screen.blit(game_over, (WIDTH//2 - 80, HEIGHT//2))
+
+    pygame.display.flip()
+
+pygame.quit()
+
